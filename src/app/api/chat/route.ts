@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-oss:20b',
+        model: 'llama3.1:8b',
         prompt: fullPrompt,
         stream: false,
         options: {
