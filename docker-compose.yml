@@ -71,8 +71,7 @@ services:
     # depends_on:
       # - ollama
     ports:
-      - "80:3000"    # HTTP access
-      - "443:3000"   # HTTPS access (same app, different port)
+      - "80:3000"    # HTTP access only
       - "3000:3000"  # Keep debugging port
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
