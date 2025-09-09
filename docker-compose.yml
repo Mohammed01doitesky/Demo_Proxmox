@@ -114,9 +114,9 @@ services:
       - "3000:3000"  # Direct access for debugging
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=HostRegexp(`{host:.+}`)"
-      - "traefik.http.routers.dashboard.entrypoints=web,websecure"
-      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashboard.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.dashboard.entrypoints=web"
+      - "traefik.http.routers.dashboard.priority=1"
       - "traefik.http.services.dashboard.loadbalancer.server.port=3000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
