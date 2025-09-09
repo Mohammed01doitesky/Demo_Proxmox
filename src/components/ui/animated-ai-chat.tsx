@@ -207,27 +207,14 @@ export function AnimatedAIChat() {
         }
     });
 
-    // Parse content to extract thinking sections
+    // Parse content to extract thinking sections (disabled)
     const parseContent = (content: string): ParsedContent => {
-        const thinkingRegex = /<think>([\s\S]*?)<\/think>/gi;
-        const matches = [...content.matchAll(thinkingRegex)];
+        // Remove thinking tags completely from content
+        const cleanContent = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
         
-        if (matches.length === 0) {
-            return { response: content };
-        }
-
-        let thinking = '';
-        let response = content;
-
-        // Extract all thinking sections
-        matches.forEach(match => {
-            thinking += (thinking ? '\n\n' : '') + match[1].trim();
-            response = response.replace(match[0], '').trim();
-        });
-
         return {
-            thinking: thinking || undefined,
-            response: response || content
+            thinking: undefined, // Always disabled
+            response: cleanContent || content
         };
     };
 
@@ -601,13 +588,7 @@ export function AnimatedAIChat() {
                                                 </div>
                                             )}
                                             <div className="flex-1">
-                                                {/* Show thinking section for assistant messages - ALWAYS ON TOP */}
-                                                {message.role === 'assistant' && message.parsedContent?.thinking && (
-                                                    <ThinkingSection 
-                                                        messageId={message.id} 
-                                                        thinking={message.parsedContent.thinking} 
-                                                    />
-                                                )}
+                                                {/* Thinking section disabled */}
 
                                                 <p className="text-sm leading-relaxed whitespace-pre-wrap">
                                                     {message.role === 'assistant' && message.parsedContent 
