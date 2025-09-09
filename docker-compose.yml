@@ -26,9 +26,8 @@ services:
       - proximox-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ollama.rule=Host(`ollama.${DOMAIN:-localhost}`)"
-      - "traefik.http.routers.ollama.entrypoints=websecure"
-      - "traefik.http.routers.ollama.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.ollama.rule=PathPrefix(`/ollama`)"
+      - "traefik.http.routers.ollama.entrypoints=web"
       - "traefik.http.services.ollama.loadbalancer.server.port=11434"
     deploy:
       resources:
