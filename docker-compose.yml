@@ -1,17 +1,6 @@
 # Docker Compose file for Proximox Dashboard Stack
 
 services:
-  traefik:
-    image: traefik:v3.3.1
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-    ports:
-      - "80:80"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-
   # Ollama AI Service
   ollama:
     image: ollama/ollama:latest
@@ -24,11 +13,8 @@ services:
       - OLLAMA_HOST=0.0.0.0
     networks:
       - proximox-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.ollama.rule=PathPrefix(`/ollama`)"
-      - "traefik.http.routers.ollama.entrypoints=web"
-      - "traefik.http.services.ollama.loadbalancer.server.port=11434"
+    ports:
+      - "11434:11434"  # Direct access to Ollama
     deploy:
       resources:
         reservations:
@@ -87,12 +73,6 @@ services:
     ports:
       - "80:3000"    # Direct access on port 80  
       - "3000:3000"  # Keep debugging port
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.frontend.entrypoints=web"
-      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
-      - "traefik.http.routers.frontend.priority=10"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
