@@ -2,10 +2,10 @@
 
 echo "🚀 Starting Proximox Dashboard with MCP Server..."
 
-# Start MCP server in background
+# Start MCP server in background with explicit SSL environment variable
 echo "🔧 Starting MCP server..."
 cd /app/mcp
-node index.js &
+NODE_TLS_REJECT_UNAUTHORIZED=0 node index.js &
 MCP_PID=$!
 
 # Wait a moment for MCP server to initialize
