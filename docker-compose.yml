@@ -56,6 +56,31 @@ services:
               count: all
               capabilities: [gpu]
 
+  # MCP Server
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: mcp-server
+    restart: unless-stopped
+    environment:
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      - PROXMOX_HOST=${NEXT_PUBLIC_PROXIMOX_HOST:-188.40.98.142}
+      - PROXMOX_USER=${NEXT_PUBLIC_PROXIMOX_USERNAME:-root@pam}
+      - PROXMOX_TOKEN_NAME=${PROXMOX_TOKEN_NAME:-mcpserver}
+      - PROXMOX_TOKEN_VALUE=${PROXMOX_TOKEN_VALUE}
+      - PROXMOX_PORT=${NEXT_PUBLIC_PROXIMOX_PORT:-8006}
+      - PROXMOX_ALLOW_ELEVATED=${PROXMOX_ALLOW_ELEVATED:-false}
+    ports:
+      - "3001:3001"
+    networks:
+      - proximox-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # Proximox Dashboard
   proximox-dashboard:
     build:
@@ -83,17 +108,8 @@ services:
       - NEXT_PUBLIC_PROXIMOX_USERNAME=${NEXT_PUBLIC_PROXIMOX_USERNAME:-root@pam}
       - NEXT_PUBLIC_PROXIMOX_PASSWORD=${NEXT_PUBLIC_PROXIMOX_PASSWORD}
       
-      # MCP Server Configuration (Local process communication)
-      - MCP_SERVER_COMMAND=node
-      - MCP_SERVER_ARGS=/app/mcp/index.js
-      
-      # MCP Server Environment Variables
-      - PROXMOX_HOST=${NEXT_PUBLIC_PROXIMOX_HOST:-188.40.98.142}
-      - PROXMOX_USER=${NEXT_PUBLIC_PROXIMOX_USERNAME:-root@pam}
-      - PROXMOX_TOKEN_NAME=${PROXMOX_TOKEN_NAME:-mcpserver}
-      - PROXMOX_TOKEN_VALUE=${PROXMOX_TOKEN_VALUE}
-      - PROXMOX_PORT=${NEXT_PUBLIC_PROXIMOX_PORT:-8006}
-      - PROXMOX_ALLOW_ELEVATED=${PROXMOX_ALLOW_ELEVATED:-false}
+      # MCP Server Configuration (HTTP communication)
+      - MCP_SERVER_URL=http://mcp-server:3001
       
       # Ollama Integration
       - OLLAMA_HOST=http://ollama:11434
@@ -104,8 +120,8 @@ services:
       - ./logs:/app/logs
     networks:
       - proximox-network
-    # depends_on:
-      # - ollama  # Removed to prevent slow startup
+    depends_on:
+      - mcp-server
     ports:
       - "3000:3000"  # Keep debugging port
     labels:

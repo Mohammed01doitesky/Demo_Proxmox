@@ -1,37 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getMCPClient, MCPTool, MCPToolCall } from '@/lib/mcp-client';
-import { getMCPServerFromEnv, getEnabledMCPServers } from '@/lib/mcp-config';
+import { getHTTPMCPClient, MCPTool, MCPToolCall } from '@/lib/http-mcp-client';
 
 // Helper function to initialize MCP connection
 async function initializeMCP() {
   try {
-    const mcpClient = await getMCPClient();
+    const mcpClient = await getHTTPMCPClient();
     
     if (!mcpClient.isClientConnected()) {
-      // Try to connect using environment configuration first
-      const envServer = getMCPServerFromEnv();
-      if (envServer) {
-        console.log('Attempting to connect to MCP server:', {
-          command: envServer.command,
-          args: envServer.args
-        });
-        await mcpClient.connect(envServer.command, envServer.args);
+      const serverUrl = process.env.MCP_SERVER_URL;
+      if (serverUrl) {
+        console.log('Attempting to connect to HTTP MCP server:', serverUrl);
+        await mcpClient.connect(serverUrl);
         return mcpClient;
+      } else {
+        console.log('No MCP server URL configured');
+        return null;
       }
-      
-      // Fall back to first enabled server
-      const enabledServers = getEnabledMCPServers();
-      if (enabledServers.length > 0) {
-        const server = enabledServers[0];
-        console.log('Attempting to connect to fallback MCP server:', {
-          command: server.command,
-          args: server.args
-        });
-        await mcpClient.connect(server.command, server.args);
-        return mcpClient;
-      }
-      
-      console.log('No MCP servers configured');
     }
     
     return mcpClient;
