@@ -100,8 +100,8 @@ services:
       - ./logs:/app/logs
     networks:
       - proximox-network
-    depends_on:
-      - ollama
+    # depends_on:
+      # - ollama  # Removed to prevent slow startup
     ports:
       - "3000:3000"  # Keep debugging port
     labels:
