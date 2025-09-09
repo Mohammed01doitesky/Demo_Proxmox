@@ -1,27 +1,27 @@
 # Docker Compose file for Proximox Dashboard Stack
 
 services:
-  # Ollama AI Service
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    restart: unless-stopped
-    volumes:
-      - ollama_data:/root/.ollama
-    environment:
-      - OLLAMA_KEEP_ALIVE=-1m
-      - OLLAMA_HOST=0.0.0.0
-    networks:
-      - proximox-network
-    ports:
-      - "11434:11434"  # Direct access to Ollama
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+  # Ollama AI Service - Temporarily disabled
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   environment:
+  #     - OLLAMA_KEEP_ALIVE=-1m
+  #     - OLLAMA_HOST=0.0.0.0
+  #   networks:
+  #     - proximox-network
+  #   ports:
+  #     - "11434:11434"  # Direct access to Ollama
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
 
   # Proximox Dashboard
   proximox-dashboard:
