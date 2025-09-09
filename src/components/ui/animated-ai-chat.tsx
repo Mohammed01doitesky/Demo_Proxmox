@@ -377,7 +377,11 @@ export function AnimatedAIChat() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    message: userMessage.content
+                    message: userMessage.content,
+                    history: messages.map(msg => ({
+                        role: msg.role,
+                        content: msg.content
+                    }))
                 }),
             });
 

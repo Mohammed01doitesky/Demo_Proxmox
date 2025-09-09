@@ -96,7 +96,7 @@ function parseToolCalls(response: string): MCPToolCall[] {
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, useTools = true } = await request.json();
+    const { message, useTools = true, history = [] } = await request.json();
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
@@ -125,8 +125,23 @@ export async function POST(request: NextRequest) {
     // Define system prompt with tool information
     const systemPrompt = `Your name is Mohssen. You are a Proximox Virtualization Engineer Working at DOIT Company with expertise in virtualization technologies, VM management, cluster administration, and infrastructure optimization. You help users with Proximox-related tasks, troubleshooting, and best practices. Always be helpful, professional, and provide accurate technical guidance. When you need to think through a problem or show your reasoning process, wrap your thoughts in <think></think> tags.${toolsInfo}${toolsInfo ? '\n\nWhen you need to use a tool, format your tool call EXACTLY as: [TOOL_CALL] {"name": "tool_name", "arguments": {"param": "value"}}\n\nIMPORTANT: Always include complete JSON with proper closing braces. If no arguments are needed, use empty object: {"name": "tool_name", "arguments": {}}' : ''}`;
     
-    // Combine system prompt with user message
-    const fullPrompt = `${systemPrompt}\n\nUser: ${message}\nMohssen:`;
+    // Build conversation context from history
+    let conversationContext = systemPrompt;
+    
+    // Add previous messages from history
+    if (history && history.length > 0) {
+      conversationContext += '\n\nPrevious conversation:';
+      for (const entry of history) {
+        if (entry.role === 'user') {
+          conversationContext += `\nUser: ${entry.content}`;
+        } else if (entry.role === 'assistant') {
+          conversationContext += `\nMohssen: ${entry.content}`;
+        }
+      }
+    }
+    
+    // Add current user message
+    const fullPrompt = `${conversationContext}\n\nUser: ${message}\nMohssen:`;
 
     // Call Ollama API using environment variable
     const ollamaHost = process.env.OLLAMA_HOST || 'http://localhost:11434';
