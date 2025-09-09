@@ -68,6 +68,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+        - AUTH_CLERK_JWT_ISSUER_DOMAIN=${AUTH_CLERK_JWT_ISSUER_DOMAIN}
     container_name: proximox-dashboard
     restart: unless-stopped
     environment:
