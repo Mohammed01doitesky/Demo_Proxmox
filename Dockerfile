@@ -27,8 +27,13 @@ WORKDIR /app
 # Copy dashboard source code
 COPY . .
 
-# Build the Next.js application
+# Build the Next.js application with placeholder values
 ENV SKIP_ENV_VALIDATION=true
+ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_buildtime_placeholder
+ENV CLERK_SECRET_KEY=sk_test_buildtime_placeholder  
+ENV AUTH_CLERK_JWT_ISSUER_DOMAIN=https://buildtime.clerk.accounts.dev
+ARG NODE_ENV=production
+ENV NODE_ENV=$NODE_ENV
 RUN bun run build
 
 # Create startup script
