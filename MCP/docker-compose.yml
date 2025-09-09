@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  mcp-proxmox-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mcp-proxmox-server
+    restart: unless-stopped
+    environment:
+      - PROXMOX_HOST=${PROXMOX_HOST:-192.168.6.247}
+      - PROXMOX_USER=${PROXMOX_USER:-root@pam}
+      - PROXMOX_TOKEN_NAME=${PROXMOX_TOKEN_NAME:-mcpserver}
+      - PROXMOX_TOKEN_VALUE=${PROXMOX_TOKEN_VALUE}
+      - PROXMOX_PORT=${PROXMOX_PORT:-8006}
+      - PROXMOX_ALLOW_ELEVATED=${PROXMOX_ALLOW_ELEVATED:-false}
+    networks:
+      - mcp-network
+    # For stdio transport, we'll use docker exec to interact
+    # If you want HTTP transport later, uncomment the ports section:
+    # ports:
+    #   - "3001:3001"
+
+networks:
+  mcp-network:
+    driver: bridge

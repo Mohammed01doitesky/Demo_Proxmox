@@ -1,0 +1,127 @@
+# Docker Compose file for Proximox Dashboard Stack
+
+services:
+  # Traefik Reverse Proxy
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - --api.dashboard=true
+      - --api.debug=true
+      - --log.level=INFO
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@example.com}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --serversTransport.insecureSkipVerify=true
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    networks:
+      - proximox-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik.service=api@internal"
+
+  # Ollama AI Service
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=-1m
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      - proximox-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ollama.rule=Host(`ollama.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.ollama.entrypoints=websecure"
+      - "traefik.http.routers.ollama.tls.certresolver=letsencrypt"
+      - "traefik.http.services.ollama.loadbalancer.server.port=11434"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # Proximox Dashboard
+  proximox-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: proximox-dashboard
+    restart: unless-stopped
+    environment:
+      # Clerk Authentication
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - CLERK_WEBHOOK_SECRET=${CLERK_WEBHOOK_SECRET}
+      - NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+      - NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+      - AUTH_CLERK_JWT_ISSUER_DOMAIN=${AUTH_CLERK_JWT_ISSUER_DOMAIN}
+      
+      # Proxmox Configuration
+      - NEXT_PUBLIC_PROXIMOX_HOST=${NEXT_PUBLIC_PROXIMOX_HOST:-188.40.98.142}
+      - NEXT_PUBLIC_PROXIMOX_PORT=${NEXT_PUBLIC_PROXIMOX_PORT:-8006}
+      - NEXT_PUBLIC_PROXIMOX_PROTOCOL=${NEXT_PUBLIC_PROXIMOX_PROTOCOL:-https}
+      - NEXT_PUBLIC_PROXIMOX_USERNAME=${NEXT_PUBLIC_PROXIMOX_USERNAME:-root@pam}
+      - NEXT_PUBLIC_PROXIMOX_PASSWORD=${NEXT_PUBLIC_PROXIMOX_PASSWORD}
+      
+      # MCP Server Configuration (Local process communication)
+      - MCP_SERVER_COMMAND=bun
+      - MCP_SERVER_ARGS=run /app/mcp/index.js
+      
+      # MCP Server Environment Variables
+      - PROXMOX_HOST=${NEXT_PUBLIC_PROXIMOX_HOST:-188.40.98.142}
+      - PROXMOX_USER=${NEXT_PUBLIC_PROXIMOX_USERNAME:-root@pam}
+      - PROXMOX_TOKEN_NAME=${PROXMOX_TOKEN_NAME:-mcpserver}
+      - PROXMOX_TOKEN_VALUE=${PROXMOX_TOKEN_VALUE}
+      - PROXMOX_PORT=${NEXT_PUBLIC_PROXIMOX_PORT:-8006}
+      - PROXMOX_ALLOW_ELEVATED=${PROXMOX_ALLOW_ELEVATED:-false}
+      
+      # Ollama Integration
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - proximox-network
+    depends_on:
+      - ollama
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`dashboard.${DOMAIN:-localhost}`) || Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.services.dashboard.loadbalancer.server.port=3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  ollama_data:
+    driver: local
+
+networks:
+  proximox-network:
+    driver: bridge
