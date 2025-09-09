@@ -84,8 +84,8 @@ services:
       - NEXT_PUBLIC_PROXIMOX_PASSWORD=${NEXT_PUBLIC_PROXIMOX_PASSWORD}
       
       # MCP Server Configuration (Local process communication)
-      - MCP_SERVER_COMMAND=bun
-      - MCP_SERVER_ARGS=run /app/mcp/index.js
+      - MCP_SERVER_COMMAND=node
+      - MCP_SERVER_ARGS=/app/mcp/index.js
       
       # MCP Server Environment Variables
       - PROXMOX_HOST=${NEXT_PUBLIC_PROXIMOX_HOST:-188.40.98.142}
