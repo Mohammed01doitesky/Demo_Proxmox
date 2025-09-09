@@ -144,8 +144,9 @@ export async function POST(request: NextRequest) {
     // Combine system prompt with user message
     const fullPrompt = `${systemPrompt}\n\nUser: ${message}\nMohssen:`;
 
-    // Call Ollama API
-    const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
+    // Call Ollama API using environment variable
+    const ollamaHost = process.env.OLLAMA_HOST || 'http://localhost:11434';
+    const ollamaResponse = await fetch(`${ollamaHost}/api/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -220,7 +221,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Chat API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error. Please check if Ollama is running on localhost:11434' },
+      { error: `Internal server error. Please check if Ollama is running on ${process.env.OLLAMA_HOST || 'localhost:11434'}` },
       { status: 500 }
     );
   }
