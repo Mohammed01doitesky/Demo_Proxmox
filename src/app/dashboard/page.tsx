@@ -1,5 +1,8 @@
 'use client';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 import { ServerStats } from '@/components/dashboard/server-stats';
 import { VMList } from '@/components/dashboard/vm-list';
 import { ClusterOverview } from '@/components/dashboard/cluster-overview';
