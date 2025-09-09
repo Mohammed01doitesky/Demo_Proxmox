@@ -1,5 +1,8 @@
 "use client"
 
+// Force dynamic rendering - don't prerender at build time
+export const dynamic = 'force-dynamic';
+
 import { useUser } from "@clerk/nextjs";
 
 export default function TestAuth() {
