@@ -2,10 +2,12 @@
 
 echo "🚀 Starting Proximox Dashboard with MCP Server..."
 
-# Start MCP server in background
+# Start MCP server in background with proper stdio handling
 echo "🔧 Starting MCP server..."
 cd /app/mcp
-node index.js &
+# Keep stdin/stdout open for MCP server
+exec 3< <(cat)
+node index.js <&3 2>/app/mcp.log &
 MCP_PID=$!
 
 # Wait a moment for MCP server to initialize
