@@ -15,7 +15,9 @@ fi
 echo "📁 Creating required directories..."
 mkdir -p ./logs
 mkdir -p ./letsencrypt
-chmod 600 ./letsencrypt
+chmod 755 ./letsencrypt
+touch ./letsencrypt/acme.json
+chmod 600 ./letsencrypt/acme.json
 
 # Stop existing containers if running
 echo "🛑 Stopping existing containers..."

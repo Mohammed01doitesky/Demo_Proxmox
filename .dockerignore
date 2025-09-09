@@ -42,3 +42,12 @@ Thumbs.db
 # Logs
 logs
 *.log
+
+# Letsencrypt and certificates
+letsencrypt/
+*.pem
+*.crt
+*.key
+
+# Large directories
+MCP/node_modules/
