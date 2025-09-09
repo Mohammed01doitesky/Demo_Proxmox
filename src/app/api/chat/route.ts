@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama3.1:8b',
+        model: 'qwen3:32b',
         prompt: fullPrompt,
         stream: false,
         options: {
@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       response: finalResponse,
-      model: 'gpt-oss:20b',
+      model: 'qwen3:32b',
       done: data.done,
       toolResults: toolResults.length > 0 ? toolResults : undefined,
       mcpConnected: mcpClient?.isClientConnected() || false
