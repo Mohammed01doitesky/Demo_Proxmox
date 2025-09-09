@@ -14,8 +14,9 @@ services:
       - --providers.docker.exposedbydefault=false
       - --entrypoints.websecure.address=:443
       - --entrypoints.web.address=:80
-      - --entrypoints.web.http.redirections.entrypoint.to=websecure
-      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      # Disable HTTPS redirect for debugging
+      # - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      # - --entrypoints.web.http.redirections.entrypoint.scheme=https
       - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
       - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@example.com}
       - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
@@ -105,10 +106,12 @@ services:
       - proximox-network
     depends_on:
       - ollama
+    ports:
+      - "3000:3000"  # Direct access for debugging
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`dashboard.${DOMAIN:-localhost}`) || Host(`${DOMAIN:-localhost}`)"
-      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.rule=HostRegexp(`{host:.+}`)"
+      - "traefik.http.routers.dashboard.entrypoints=web,websecure"
       - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
       - "traefik.http.services.dashboard.loadbalancer.server.port=3000"
     healthcheck:
