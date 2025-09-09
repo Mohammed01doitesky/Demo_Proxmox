@@ -97,6 +97,9 @@ services:
       
       # Ollama Integration
       - OLLAMA_HOST=http://ollama:11434
+      
+      # Disable SSL verification for MCP server
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
     volumes:
       - ./logs:/app/logs
     networks:
