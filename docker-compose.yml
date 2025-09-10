@@ -112,8 +112,6 @@ services:
       - ./logs:/app/logs
     networks:
       - proximox-network
-    depends_on:
-      - mcp-server
     ports:
       - "3000:3000"  # Keep debugging port
     labels:
