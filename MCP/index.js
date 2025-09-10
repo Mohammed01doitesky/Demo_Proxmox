@@ -603,16 +603,20 @@ class ProxmoxServer {
       }
     }
 
-    // Parse disk size and ensure it has proper format
-    let diskSizeFormatted = disk_size;
+    // Parse disk size - Proxmox expects just the number for GB
+    let diskSizeGB = 32; // default
     if (typeof disk_size === 'string') {
       const diskStr = disk_size.toLowerCase();
       if (diskStr.includes('gb')) {
-        diskSizeFormatted = parseInt(diskStr) + 'G';
-      } else if (!diskStr.includes('g') && !diskStr.includes('m')) {
+        diskSizeGB = parseInt(diskStr);
+      } else if (diskStr.includes('g')) {
+        diskSizeGB = parseInt(diskStr);
+      } else {
         // If no unit specified, assume GB
-        diskSizeFormatted = disk_size + 'G';
+        diskSizeGB = parseInt(disk_size);
       }
+    } else {
+      diskSizeGB = parseInt(disk_size);
     }
 
     try {
@@ -625,7 +629,7 @@ class ProxmoxServer {
         sockets: parseInt(sockets),
         ostype: ostype,
         ide2: iso ? `local:iso/${iso},media=cdrom` : 'none,media=cdrom',
-        scsi0: `${storage}:${diskSizeFormatted}`,
+        scsi0: `${storage}:${diskSizeGB}`,
         scsihw: 'virtio-scsi-pci',
         net0: network,
         numa: 0,
@@ -645,7 +649,7 @@ class ProxmoxServer {
       output += `**CPU**: ${cores} cores, ${sockets} socket(s)\n`;
       output += `**OS Type**: ${ostype}\n`;
       output += `**Storage**: ${storage}\n`;
-      output += `**Disk Size**: ${diskSizeFormatted}\n`;
+      output += `**Disk Size**: ${diskSizeGB}GB\n`;
       output += `**Network**: ${network}\n`;
       if (iso) {
         output += `**ISO**: ${iso}\n`;
