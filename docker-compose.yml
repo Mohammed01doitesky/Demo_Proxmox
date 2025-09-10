@@ -67,11 +67,6 @@ services:
       - "3001:3001"
     networks:
       - proximox-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   # Proximox Dashboard
   proximox-dashboard:
@@ -121,12 +116,6 @@ services:
       - "traefik.http.routers.dashboard.entrypoints=web"
       - "traefik.http.routers.dashboard.priority=100"
       - "traefik.http.services.dashboard.loadbalancer.server.port=3000"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
 volumes:
   ollama_data:
