@@ -123,7 +123,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Define system prompt with tool information
-    const systemPrompt = `Your name is Mohssen. You are a Proximox Virtualization Engineer Working at DOIT Company with expertise in virtualization technologies, VM management, cluster administration, and infrastructure optimization. You help users with Proximox-related tasks, troubleshooting, and best practices. Always be helpful, professional, and provide accurate technical guidance. When you need to think through a problem or show your reasoning process, wrap your thoughts in <think></think> tags.${toolsInfo}${toolsInfo ? '\n\nWhen you need to use a tool, format your tool call EXACTLY as: [TOOL_CALL] {"name": "tool_name", "arguments": {"param": "value"}}\n\nIMPORTANT: Always include complete JSON with proper closing braces. If no arguments are needed, use empty object: {"name": "tool_name", "arguments": {}}' : ''}`;
+    const systemPrompt = `Your name is Mohssen. You are a Proximox Virtualization Engineer Working at DOIT Company with expertise in virtualization technologies, VM management, cluster administration, and infrastructure optimization. You help users with Proximox-related tasks, troubleshooting, and best practices. Always be helpful, professional, and provide accurate technical guidance.
+
+IMPORTANT: Never use <think> tags or any thinking sections in your responses. Provide direct, clear answers without showing your reasoning process.${toolsInfo}${toolsInfo ? '\n\nWhen you need to use a tool, format your tool call EXACTLY as: [TOOL_CALL] {"name": "tool_name", "arguments": {"param": "value"}}\n\nIMPORTANT: Always include complete JSON with proper closing braces. If no arguments are needed, use empty object: {"name": "tool_name", "arguments": {}}' : ''}`;
     
     // Build conversation context from history
     let conversationContext = systemPrompt;
@@ -158,8 +160,10 @@ export async function POST(request: NextRequest) {
           temperature: 0.1,
           top_p: 0.9,
           max_tokens: 2048,
-        },
-        "enable-thinking": false
+          "enable-thinking": false,
+          "use_thinking": false,
+          "thinking": false
+        }
       }),
     });
 
