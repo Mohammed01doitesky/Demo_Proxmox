@@ -590,17 +590,42 @@ class ProxmoxServer {
       iso
     } = args;
 
+    // Parse memory if it's a string with units (e.g., "4GB" -> 4096)
+    let memoryMB = memory;
+    if (typeof memory === 'string') {
+      const memoryStr = memory.toLowerCase();
+      if (memoryStr.includes('gb')) {
+        memoryMB = parseInt(memoryStr) * 1024;
+      } else if (memoryStr.includes('mb')) {
+        memoryMB = parseInt(memoryStr);
+      } else {
+        memoryMB = parseInt(memoryStr);
+      }
+    }
+
+    // Parse disk size and ensure it has proper format
+    let diskSizeFormatted = disk_size;
+    if (typeof disk_size === 'string') {
+      const diskStr = disk_size.toLowerCase();
+      if (diskStr.includes('gb')) {
+        diskSizeFormatted = parseInt(diskStr) + 'G';
+      } else if (!diskStr.includes('g') && !diskStr.includes('m')) {
+        // If no unit specified, assume GB
+        diskSizeFormatted = disk_size + 'G';
+      }
+    }
+
     try {
       // Build VM configuration
       const vmConfig = {
         vmid: parseInt(vmid),
         name: name,
-        memory: memory,
-        cores: cores,
-        sockets: sockets,
+        memory: memoryMB,
+        cores: parseInt(cores),
+        sockets: parseInt(sockets),
         ostype: ostype,
         ide2: iso ? `local:iso/${iso},media=cdrom` : 'none,media=cdrom',
-        scsi0: `${storage}:32`,
+        scsi0: `${storage}:${diskSizeFormatted}`,
         scsihw: 'virtio-scsi-pci',
         net0: network,
         numa: 0,
@@ -616,11 +641,11 @@ class ProxmoxServer {
       output += `**Node**: ${node}\n`;
       output += `**VM ID**: ${vmid}\n`;
       output += `**Name**: ${name}\n`;
-      output += `**Memory**: ${memory} MB\n`;
+      output += `**Memory**: ${memoryMB} MB\n`;
       output += `**CPU**: ${cores} cores, ${sockets} socket(s)\n`;
       output += `**OS Type**: ${ostype}\n`;
       output += `**Storage**: ${storage}\n`;
-      output += `**Disk Size**: ${disk_size}\n`;
+      output += `**Disk Size**: ${diskSizeFormatted}\n`;
       output += `**Network**: ${network}\n`;
       if (iso) {
         output += `**ISO**: ${iso}\n`;
