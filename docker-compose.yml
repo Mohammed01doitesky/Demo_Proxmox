@@ -16,8 +16,7 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@example.com}"
       - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      # HTTP to HTTPS redirect disabled for faster loading
     ports:
       - "80:80"
       - "443:443"
@@ -127,17 +126,16 @@ services:
       - "3000:3000"  # Keep debugging port
     labels:
       - "traefik.enable=true"
-      # HTTPS router
-      - "traefik.http.routers.dashboard.rule=Host(`${DOMAIN_NAME:-ec2-35-90-21-231.us-west-2.compute.amazonaws.com}`)"
-      - "traefik.http.routers.dashboard.entrypoints=websecure"
-      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.dashboard.priority=100"
-      - "traefik.http.services.dashboard.loadbalancer.server.port=3000"
-      # HTTP redirect router
-      - "traefik.http.routers.dashboard-http.rule=Host(`${DOMAIN_NAME:-ec2-35-90-21-231.us-west-2.compute.amazonaws.com}`)"
+      # HTTP router (primary - works immediately)
+      - "traefik.http.routers.dashboard-http.rule=PathPrefix(`/`)"
       - "traefik.http.routers.dashboard-http.entrypoints=web"
-      - "traefik.http.routers.dashboard-http.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.dashboard-http.priority=100"
+      - "traefik.http.services.dashboard.loadbalancer.server.port=3000"
+      # HTTPS router (optional - only if SSL_ENABLED=true)
+      - "traefik.http.routers.dashboard-https.rule=Host(`${DOMAIN_NAME:-localhost}`)"
+      - "traefik.http.routers.dashboard-https.entrypoints=websecure"
+      - "traefik.http.routers.dashboard-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashboard-https.priority=200"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
