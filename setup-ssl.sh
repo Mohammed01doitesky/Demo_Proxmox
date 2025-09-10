@@ -2,9 +2,13 @@
 
 echo "🔒 Setting up SSL for Traefik..."
 
+# Remove existing letsencrypt directory if it exists
+sudo rm -rf ./letsencrypt
+
 # Create letsencrypt directory with proper permissions
 mkdir -p ./letsencrypt
-chmod 600 ./letsencrypt
+sudo chown $USER:$USER ./letsencrypt
+chmod 755 ./letsencrypt
 
 # Create acme.json file with proper permissions
 touch ./letsencrypt/acme.json
