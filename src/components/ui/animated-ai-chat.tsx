@@ -177,6 +177,7 @@ export function AnimatedAIChat() {
     const [attachments, setAttachments] = useState<string[]>([]);
     const [isTyping, setIsTyping] = useState(false);
     const [activeSuggestion, setActiveSuggestion] = useState<number>(-1);
+    const [abortController, setAbortController] = useState<AbortController | null>(null);
     const [showCommandPalette, setShowCommandPalette] = useState(false);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [messages, setMessages] = useState<Message[]>([]);
@@ -357,6 +358,10 @@ export function AnimatedAIChat() {
         setError(null);
         setIsThinkingCollapsed(false); // Reset thinking state
 
+        // Create abort controller for this request
+        const controller = new AbortController();
+        setAbortController(controller);
+
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
@@ -370,6 +375,7 @@ export function AnimatedAIChat() {
                         content: msg.content
                     }))
                 }),
+                signal: controller.signal
             });
 
             const data = await response.json();
@@ -391,10 +397,16 @@ export function AnimatedAIChat() {
 
             setMessages(prev => [...prev, assistantMessage]);
         } catch (error) {
-            console.error('Chat error:', error);
-            setError(error instanceof Error ? error.message : 'Failed to send message');
+            if (error instanceof Error && error.name === 'AbortError') {
+                console.log('Request was aborted by user');
+                setError('Request stopped by user');
+            } else {
+                console.error('Chat error:', error);
+                setError(error instanceof Error ? error.message : 'Failed to send message');
+            }
         } finally {
             setIsTyping(false);
+            setAbortController(null);
         }
     };
 
@@ -417,6 +429,14 @@ export function AnimatedAIChat() {
         setMessages([]);
         setError(null);
         setCollapsedThinking({});
+    };
+
+    const stopGeneration = () => {
+        if (abortController) {
+            abortController.abort();
+            setAbortController(null);
+            setIsTyping(false);
+        }
     };
 
     const toggleThinking = React.useCallback((messageId: string) => {
@@ -876,24 +896,26 @@ export function AnimatedAIChat() {
                             
                             <motion.button
                                 type="button"
-                                onClick={handleSendMessage}
+                                onClick={isTyping ? stopGeneration : handleSendMessage}
                                 whileHover={{ scale: 1.01 }}
                                 whileTap={{ scale: 0.98 }}
-                                disabled={isTyping || !value.trim()}
+                                disabled={!isTyping && !value.trim()}
                                 className={cn(
                                     "px-4 py-2 rounded-lg text-sm font-medium transition-all",
                                     "flex items-center gap-2",
-                                    value.trim()
+                                    isTyping 
+                                        ? "bg-red-500 text-white shadow-lg hover:bg-red-600"
+                                        : value.trim()
                                         ? "bg-primary text-primary-foreground shadow-lg"
                                         : "bg-muted text-muted-foreground"
                                 )}
                             >
                                 {isTyping ? (
-                                    <LoaderIcon className="w-4 h-4 animate-[spin_2s_linear_infinite]" />
+                                    <XIcon className="w-4 h-4" />
                                 ) : (
                                     <SendIcon className="w-4 h-4" />
                                 )}
-                                <span>Send</span>
+                                <span>{isTyping ? 'Stop' : 'Send'}</span>
                             </motion.button>
                         </div>
                     </motion.div>

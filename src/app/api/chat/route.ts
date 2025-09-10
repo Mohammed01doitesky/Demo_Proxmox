@@ -167,10 +167,7 @@ ${toolsInfo}${toolsInfo ? '\n\nWhen you need to use a tool, format your tool cal
         options: {
           temperature: 0.1,
           top_p: 0.9,
-          max_tokens: 2048,
-          "enable-thinking": false,
-          "use_thinking": false,
-          "thinking": false
+          num_predict: 8192
         }
       }),
     });
