@@ -35,8 +35,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ollama.rule=PathPrefix(`/ollama`)"
-      - "traefik.http.routers.ollama.entrypoints=websecure"
-      - "traefik.http.routers.ollama.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.ollama.entrypoints=web"
       - "traefik.http.routers.ollama.priority=50"
       - "traefik.http.services.ollama.loadbalancer.server.port=11434"
       - "traefik.http.routers.ollama.middlewares=ollama-stripprefix"
